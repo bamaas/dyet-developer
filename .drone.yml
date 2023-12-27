@@ -1,0 +1,57 @@
+---
+kind: pipeline
+type: kubernetes
+name: Build
+
+globals:
+  - &docker_creds
+    username:
+      from_secret: DOCKER_USERNAME
+    password:
+      from_secret: DOCKER_PASSWORD
+  - &ssh_keys
+    volumes:
+      - name: drone-ssh-keys
+        path: /root/.ssh
+
+trigger:
+  branch:
+  - master
+
+clone:
+  disable: true
+
+volumes:
+- name: drone-ssh-keys
+  claim:
+    name: drone-ssh-keys
+    read_only: true
+
+steps:
+- name: Clone
+  image: bamaas/tools:drone-alpine-0.0.10
+  <<: *ssh_keys
+  commands:
+  - git clone ssh://git@gitea.kubernetes.lan.basmaas.nl:22/${DRONE_REPO} .
+  - git checkout ${DRONE_COMMIT}
+
+- name: Determine tag
+  image: bamaas/tools:drone-alpine-0.0.14
+  <<: *ssh_keys
+  commands:
+  - make tag
+
+- name: Build
+  image: plugins/docker
+  settings:
+    mtu: 1440
+    context: dyet-developer
+    dockerfile: dyet-developer/Dockerfile
+    repo: bamaas/dyet-developer
+    <<: *docker_creds
+
+- name: Add Git tag
+  image: bamaas/tools:drone-alpine-0.0.14
+  <<: *ssh_keys
+  commands:
+  - make git-tag
