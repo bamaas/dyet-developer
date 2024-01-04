@@ -61,3 +61,6 @@ ENV PIPX_HOME=/opt/pipx
 ENV PIPX_BIN_DIR=/usr/local/bin
 RUN pipx install commitizen==2.39.1 && \
     pipx install pre-commit==3.0.2
+
+# Python3 packages
+RUN pip3 install ruamel.yaml --break-system-packages
