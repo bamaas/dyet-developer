@@ -63,4 +63,4 @@ RUN pipx install commitizen==2.39.1 && \
     pipx install pre-commit==3.0.2
 
 # Python3 packages
-RUN pip3 install ruamel.yaml --break-system-packages
+RUN pip3 install ruamel.yaml==0.18.5 --break-system-packages
